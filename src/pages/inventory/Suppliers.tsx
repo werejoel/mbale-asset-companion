@@ -1,14 +1,29 @@
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { suppliers } from "@/lib/mock-data";
 import { Truck, Mail, Phone, User } from "lucide-react";
+import { suppliersAPI } from "@/lib/api";
 
 export default function Suppliers() {
+  const {
+    data: suppliers = [],
+    isLoading,
+    error,
+  } = useQuery({ queryKey: ["suppliers"], queryFn: suppliersAPI.getAll });
+
+  if (isLoading) {
+    return <div className="p-6">Loading suppliers...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-destructive">Unable to load suppliers.</div>;
+  }
+
   return (
     <div className="p-6">
       <PageHeader title="Suppliers" description="Manage equipment and service suppliers" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {suppliers.map((s) => (
+        {suppliers.map((s: any) => (
           <div key={s.id} className="bg-card border border-border rounded-xl p-5 hover:shadow-md transition-shadow animate-fade-in">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">

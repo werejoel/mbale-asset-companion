@@ -1,18 +1,35 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Activity, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const from = (location.state as any)?.from?.pathname || "/";
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/");
+    setError(null);
+    setLoading(true);
+
+    try {
+      await login({ email, password });
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setError(err?.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,8 +97,15 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full">Sign In</Button>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
           </form>
+
+          <p className="text-sm text-center text-muted-foreground mt-6">
+            Don&apos;t have an account? <Link to="/signup" className="text-primary">Sign up</Link>
+          </p>
 
           <p className="text-xs text-center text-muted-foreground mt-8">
             © 2024 Mbale Regional Referral Hospital

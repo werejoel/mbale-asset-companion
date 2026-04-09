@@ -1,21 +1,51 @@
 import { useState } from "react";
 import { Plus, Search, Filter } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import { assets, departments, assetCategories } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { assetsAPI, departmentsAPI, assetCategoriesAPI } from "@/lib/api";
 
 export default function Assets() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const filtered = assets.filter((a) => {
+  const {
+    data: assets = [],
+    isLoading: assetsLoading,
+    error: assetsError,
+  } = useQuery({ queryKey: ["assets"], queryFn: assetsAPI.getAll });
+
+  const {
+    data: departments = [],
+    isLoading: departmentsLoading,
+    error: departmentsError,
+  } = useQuery({ queryKey: ["departments"], queryFn: departmentsAPI.getAll });
+
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useQuery({ queryKey: ["assetCategories"], queryFn: assetCategoriesAPI.getAll });
+
+  const isLoading = assetsLoading || departmentsLoading || categoriesLoading;
+  const error = assetsError || departmentsError || categoriesError;
+
+  const filtered = assets.filter((a: any) => {
     const matchSearch = a.asset_name.toLowerCase().includes(search.toLowerCase()) ||
       a.asset_tag.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || a.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  if (isLoading) {
+    return <div className="p-6">Loading assets...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-destructive">Unable to load assets.</div>;
+  }
 
   return (
     <div className="p-6">
@@ -38,7 +68,7 @@ export default function Assets() {
         </div>
         <div className="flex items-center gap-1.5">
           <Filter className="w-4 h-4 text-muted-foreground" />
-          {["All", "In Use", "Under Maintenance", "Disposed"].map((s) => (
+          {["All", "available", "under_maintenance", "disposed"].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -48,7 +78,7 @@ export default function Assets() {
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
             >
-              {s}
+              {s === "available" ? "Available" : s === "under_maintenance" ? "Under Maintenance" : s === "disposed" ? "Disposed" : "All"}
             </button>
           ))}
         </div>
@@ -70,9 +100,9 @@ export default function Assets() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((a) => {
-                const cat = assetCategories.find((c) => c.id === a.category_id);
-                const dept = departments.find((d) => d.id === a.department_id);
+              {filtered.map((a: any) => {
+                const cat = categories.find((c: any) => c.id === a.category_id);
+                const dept = departments.find((d: any) => d.id === a.department_id);
                 return (
                   <tr key={a.id} className="border-t border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer">
                     <td className="py-3 px-4 font-mono text-xs text-primary">{a.asset_tag}</td>
@@ -81,7 +111,7 @@ export default function Assets() {
                     <td className="py-3 px-4 text-muted-foreground">{dept?.department_name}</td>
                     <td className="py-3 px-4"><StatusBadge status={a.asset_condition} /></td>
                     <td className="py-3 px-4"><StatusBadge status={a.status} /></td>
-                    <td className="py-3 px-4 text-right font-medium">${a.purchase_cost.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right font-medium">UGX {Number(a.purchase_cost).toLocaleString()}</td>
                   </tr>
                 );
               })}

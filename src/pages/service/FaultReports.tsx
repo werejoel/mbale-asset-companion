@@ -1,10 +1,34 @@
+import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import { faultReports, assets } from "@/lib/mock-data";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { faultReportsAPI, assetsAPI } from "@/lib/api";
 
 export default function FaultReports() {
+  const {
+    data: faultReports = [],
+    isLoading: faultsLoading,
+    error: faultsError,
+  } = useQuery({ queryKey: ["faultReports"], queryFn: faultReportsAPI.getAll });
+
+  const {
+    data: assets = [],
+    isLoading: assetsLoading,
+    error: assetsError,
+  } = useQuery({ queryKey: ["assets"], queryFn: assetsAPI.getAll });
+
+  const isLoading = faultsLoading || assetsLoading;
+  const error = faultsError || assetsError;
+
+  if (isLoading) {
+    return <div className="p-6">Loading fault reports...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-destructive">Unable to load fault reports.</div>;
+  }
+
   return (
     <div className="p-6">
       <PageHeader title="Fault Reports" description="Report and track asset faults">
@@ -12,8 +36,8 @@ export default function FaultReports() {
       </PageHeader>
 
       <div className="grid gap-4">
-        {faultReports.map((f) => {
-          const asset = assets.find((a) => a.id === f.asset_id);
+        {faultReports.map((f: any) => {
+          const asset = assets.find((a: any) => a.id === f.asset_id);
           return (
             <div key={f.id} className="bg-card border border-border rounded-xl p-5 hover:shadow-md transition-shadow animate-fade-in">
               <div className="flex items-start justify-between">
@@ -23,7 +47,7 @@ export default function FaultReports() {
                     <StatusBadge status={f.priority} />
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{f.description}</p>
-                  <p className="text-xs text-muted-foreground">Reported by {f.reported_by} on {f.report_date}</p>
+                  <p className="text-xs text-muted-foreground">Reported by {f.reported_by} on {new Date(f.report_date).toLocaleDateString()}</p>
                 </div>
                 <StatusBadge status={f.status} />
               </div>

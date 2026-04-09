@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Package,
   Activity,
@@ -8,48 +10,116 @@ import {
   ClipboardList,
   TrendingUp,
 } from "lucide-react";
+import "./Dashboard.css";
 import StatCard from "@/components/StatCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
-import { dashboardStats, assets, faultReports, departments, assetCategories } from "@/lib/mock-data";
+import { assetsAPI, departmentsAPI, assetCategoriesAPI, faultReportsAPI, assignmentsAPI } from "@/lib/api";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-
-const categoryData = assetCategories.map((cat) => ({
-  name: cat.category_name,
-  value: assets.filter((a) => a.category_id === cat.id).length,
-}));
-
-const deptData = departments.map((d) => ({
-  name: d.department_name,
-  assets: assets.filter((a) => a.department_id === d.id).length,
-}));
 
 const COLORS = ["hsl(174,62%,32%)", "hsl(38,92%,50%)", "hsl(200,25%,12%)", "hsl(152,60%,40%)", "hsl(200,15%,60%)"];
 
 export default function Dashboard() {
+  const {
+    data: assets = [],
+    isLoading: assetsLoading,
+    error: assetsError,
+  } = useQuery({ queryKey: ["assets"], queryFn: assetsAPI.getAll });
+
+  const {
+    data: departments = [],
+    isLoading: departmentsLoading,
+    error: departmentsError,
+  } = useQuery({ queryKey: ["departments"], queryFn: departmentsAPI.getAll });
+
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useQuery({ queryKey: ["assetCategories"], queryFn: assetCategoriesAPI.getAll });
+
+  const {
+    data: faultReports = [],
+    isLoading: faultsLoading,
+    error: faultsError,
+  } = useQuery({ queryKey: ["faultReports"], queryFn: faultReportsAPI.getAll });
+
+  const {
+    data: assignments = [],
+    isLoading: assignmentsLoading,
+    error: assignmentsError,
+  } = useQuery({ queryKey: ["assignments"], queryFn: assignmentsAPI.getAll });
+
+  const isLoading = assetsLoading || departmentsLoading || categoriesLoading || faultsLoading || assignmentsLoading;
+  const error = assetsError || departmentsError || categoriesError || faultsError || assignmentsError;
+
+  const dashboardStats = useMemo(() => {
+    const totalAssets = assets.length;
+    const totalValue = assets.reduce((sum, item) => sum + Number(item.purchase_cost || 0), 0);
+    const activeAssets = assets.filter((asset) => asset.status === "available").length;
+    const underMaintenance = assets.filter((asset) => asset.status === "under_maintenance" || asset.status === "maintenance").length;
+    const openFaults = faultReports.filter((fault) => fault.status === "pending").length;
+    const disposed = assets.filter((asset) => asset.status === "disposed").length;
+
+    return {
+      totalAssets,
+      totalValue,
+      activeAssets,
+      underMaintenance,
+      openFaults,
+      departments: departments.length,
+      disposed,
+      pendingAssignments: assignments.filter((assignment) => assignment.status === "active").length,
+    };
+  }, [assets, departments.length, faultReports, assignments]);
+
+  const categoryData = useMemo(
+    () => categories.map((cat) => ({
+      name: cat.category_name,
+      value: assets.filter((a) => a.category_id === cat.id).length,
+    })),
+    [assets, categories]
+  );
+
+  const deptData = useMemo(
+    () => departments.map((d) => ({
+      name: d.department_name,
+      assets: assets.filter((a) => a.department_id === d.id).length,
+    })),
+    [assets, departments]
+  );
+
+  if (isLoading) {
+    return <div className="p-6">Loading dashboard...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-destructive">Failed to load dashboard data.</div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="dashboard-page">
       <PageHeader title="Dashboard" description="Mbale Regional Referral Hospital — Asset Overview" />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="dashboard-grid dashboard-stats-grid">
         <StatCard title="Total Assets" value={dashboardStats.totalAssets} icon={Package} variant="primary" trend="+12 this month" />
         <StatCard title="Active Assets" value={dashboardStats.activeAssets} icon={Activity} variant="success" />
         <StatCard title="Under Maintenance" value={dashboardStats.underMaintenance} icon={Wrench} variant="accent" />
         <StatCard title="Open Faults" value={dashboardStats.openFaults} icon={AlertTriangle} variant="default" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard title="Total Value" value={`$${(dashboardStats.totalValue / 1000000).toFixed(1)}M`} icon={DollarSign} />
+      <div className="dashboard-grid dashboard-stats-grid">
+        <StatCard title="Total Value" value={`UGX ${(dashboardStats.totalValue / 1000000).toFixed(1)}M`} icon={DollarSign} />
         <StatCard title="Departments" value={dashboardStats.departments} icon={Building2} />
         <StatCard title="Disposed" value={dashboardStats.disposed} icon={Package} />
         <StatCard title="Pending Assignments" value={dashboardStats.pendingAssignments} icon={ClipboardList} />
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Assets by Category</h3>
+      <div className="dashboard-grid dashboard-charts-grid">
+        <div className="dashboard-card">
+          <h3 className="dashboard-card-heading">Assets by Category</h3>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie data={categoryData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" paddingAngle={3}>
@@ -70,8 +140,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Assets by Department</h3>
+        <div className="dashboard-card">
+          <h3 className="dashboard-card-heading">Assets by Department</h3>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={deptData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(195,15%,88%)" />
@@ -85,13 +155,13 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Faults */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className="dashboard-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Recent Fault Reports</h3>
+          <h3 className="dashboard-card-heading">Recent Fault Reports</h3>
           <TrendingUp className="w-4 h-4 text-muted-foreground" />
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="dashboard-table">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left py-2.5 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Asset</th>
