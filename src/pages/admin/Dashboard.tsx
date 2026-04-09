@@ -10,7 +10,7 @@ import {
   ClipboardList,
   TrendingUp,
 } from "lucide-react";
-import "./Dashboard.css";
+import "./css/Dashboard.css";
 import StatCard from "@/components/StatCard";
 import PageHeader from "@/components/PageHeader";
 import StatusBadge from "@/components/StatusBadge";
