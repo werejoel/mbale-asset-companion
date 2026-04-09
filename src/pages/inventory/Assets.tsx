@@ -40,15 +40,15 @@ export default function Assets() {
   });
 
   if (isLoading) {
-    return <div className="p-6">Loading assets...</div>;
+    return <div className="px-4 sm:px-6 md:p-6">Loading assets...</div>;
   }
 
   if (error) {
-    return <div className="p-6 text-destructive">Unable to load assets.</div>;
+    return <div className="px-4 sm:px-6 md:p-6 text-destructive">Unable to load assets.</div>;
   }
 
   return (
-    <div className="p-6">
+    <div className="px-4 sm:px-6 md:p-6">
       <PageHeader title="Assets" description="Manage all hospital assets">
         <Button className="gap-2">
           <Plus className="w-4 h-4" /> Add Asset

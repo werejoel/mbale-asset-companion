@@ -97,15 +97,35 @@ export const navItems: NavItem[] = [
 ];
 
 export const getNavItemsForRole = (role: Role | string) => {
+  const getDefaultRouteForRole = (role: string) => {
+    switch (role) {
+      case "asset_manager":
+        return "/assets";
+      case "technician":
+        return "/maintenance";
+      case "department_head":
+        return "/departments";
+      case "staff":
+        return "/assets";
+      default:
+        return "/";
+    }
+  };
+
   if (role === "admin") {
     return navItems;
   }
 
-  return navItems.filter((item) => item.roles.includes(role as Role));
+  const filteredItems = navItems.filter((item) => item.roles.includes(role as Role));
+  
+  // Update the Dashboard path for non-admin roles
+  return filteredItems.map(item => 
+    item.path === "/" ? { ...item, path: getDefaultRouteForRole(role) } : item
+  );
 };
 
 export const routePermissions: Record<string, Role[]> = {
-  "/": ["admin", "asset_manager", "technician", "department_head", "staff"],
+  "/": ["admin"],
   "/assets": ["admin", "asset_manager", "technician", "department_head"],
   "/departments": ["admin", "department_head"],
   "/suppliers": ["admin", "asset_manager"],

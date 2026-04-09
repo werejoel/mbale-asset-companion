@@ -34,6 +34,7 @@ export const API_ENDPOINTS = {
   // Users
   USERS: {
     LIST: "/users",
+    PROFILES: "/users/profiles",
     GET: (id) => `/users/${id}`,
     CREATE: "/users",
     UPDATE: (id) => `/users/${id}`,
@@ -182,6 +183,7 @@ export const departmentsAPI = {
 // Users
 export const usersAPI = {
   getAll: () => apiCall(API_ENDPOINTS.USERS.LIST),
+  getProfiles: () => apiCall(API_ENDPOINTS.USERS.PROFILES, "GET", null, null), // Public endpoint, no auth needed
   getById: (id) => apiCall(API_ENDPOINTS.USERS.GET(id)),
   create: (data) => apiCall(API_ENDPOINTS.USERS.CREATE, "POST", data),
   update: (id, data) => apiCall(API_ENDPOINTS.USERS.UPDATE(id), "PUT", data),

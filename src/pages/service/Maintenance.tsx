@@ -22,15 +22,15 @@ export default function Maintenance() {
   const error = maintenanceError || assetsError;
 
   if (isLoading) {
-    return <div className="p-6">Loading maintenance records...</div>;
+    return <div className="px-4 sm:px-6 md:p-6">Loading maintenance records...</div>;
   }
 
   if (error) {
-    return <div className="p-6 text-destructive">Unable to load maintenance records.</div>;
+    return <div className="px-4 sm:px-6 md:p-6 text-destructive">Unable to load maintenance records.</div>;
   }
 
   return (
-    <div className="p-6">
+    <div className="px-4 sm:px-6 md:p-6">
       <PageHeader title="Maintenance Records" description="Track all maintenance activities">
         <Button className="gap-2"><Plus className="w-4 h-4" /> New Record</Button>
       </PageHeader>

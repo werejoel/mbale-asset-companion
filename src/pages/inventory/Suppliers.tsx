@@ -11,15 +11,15 @@ export default function Suppliers() {
   } = useQuery({ queryKey: ["suppliers"], queryFn: suppliersAPI.getAll });
 
   if (isLoading) {
-    return <div className="p-6">Loading suppliers...</div>;
+    return <div className="px-4 sm:px-6 md:p-6">Loading suppliers...</div>;
   }
 
   if (error) {
-    return <div className="p-6 text-destructive">Unable to load suppliers.</div>;
+    return <div className="px-4 sm:px-6 md:p-6 text-destructive">Unable to load suppliers.</div>;
   }
 
   return (
-    <div className="p-6">
+    <div className="px-4 sm:px-6 md:p-6">
       <PageHeader title="Suppliers" description="Manage equipment and service suppliers" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
