@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
-/* ── Root tokens ─────────────────────────────────────────────── */
+/* ── Root tokens ─── */
 :root {
   --dash-teal:        #0d6e6e;
   --dash-teal-light:  #11918f;
@@ -36,7 +36,7 @@
   --dash-font-body: 'DM Sans', sans-serif;
 }
 
-/* ── Page shell ──────────────────────────────────────────────── */
+/* ── Page shell ──*/
 .dashboard-page {
   padding: 2rem 2rem 4rem;
   min-height: 100vh;
@@ -48,7 +48,7 @@
   color: var(--dash-text-body);
 }
 
-/* ── Stats grids ─────────────────────────────────────────────── */
+/* ── Stats grids ─ */
 .dashboard-stats-grid {
   display: grid;
   gap: 1rem;
@@ -68,7 +68,7 @@
   }
 }
 
-/* ── Charts grid ─────────────────────────────────────────────── */
+/* ── Charts grid*/
 .dashboard-charts-grid {
   display: grid;
   gap: 1.25rem;
@@ -82,7 +82,7 @@
   }
 }
 
-/* ── Card ────────────────────────────────────────────────────── */
+/* ── Card ── */
 .dashboard-card {
   background: var(--dash-surface);
   border: 1px solid var(--dash-border);
